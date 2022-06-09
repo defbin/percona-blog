@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+compose=$(dirname "$0")/compose.yaml
+
+_dcf() {
+    docker compose -f "$compose" "$@"
+}
+
+let_up() {
+    _dcf up -d "$@"
+}
+
+meval() {
+    echo "# ${1}:${2}  $3"
+    _dcf exec "$1" mongo --quiet --port "$2" --eval "$3"
+}
+
+wait_for() {
+    while ! meval "$1" "$2" 'db.version()' >/dev/null 2>&1; do sleep 0.5; done
+}

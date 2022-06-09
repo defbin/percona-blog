@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+source "$(dirname $0)/../util"
+
+export DATABASE_URI=mongodb://mongo:27017
+
+rss="cfg0"
+for i in {0..2}; do
+    for j in {0..2}; do
+        rss="$rss rs${i}${j}"
+    done
+done
+
+let_up mongos cfg0 $rss
+
+echo "<=== initiating ===>"
+wait_for cfg0 27019
+echo "# cfg/cfg0:27019"
+meval cfg0 27019 'rs.initiate({
+    _id: "cfg",
+    configsvr: true,
+    members: [
+        {_id: 0, host: "cfg0:27019"},
+    ],
+})'
+
+for i in {0..2}; do
+    wait_for "rs${i}0" 27018 && wait_for "rs${i}1" 27018 && wait_for "rs${i}2" 27018
+    echo "# rs${i}/rs${i}0:27018,rs${i}1:27018,rs${i}2:27018"
+    meval "rs${i}0" 27018 "rs.initiate({
+        _id: 'rs$i',
+        members: [
+            {_id: 0, host: 'rs${i}0:27018'},
+            {_id: 1, host: 'rs${i}1:27018'},
+            {_id: 2, host: 'rs${i}2:27018'},
+        ],
+    })"
+done
+
+echo "<=== adding shards ===>"
+wait_for mongos 27017
+for i in {0..2}; do
+    echo "# rs${i}/rs${i}0:27018,rs${i}1:27018,rs${i}2:27018"
+    mongosh "$DATABASE_URI" --quiet --eval \
+        "sh.addShard('rs${i}/rs${i}0:27018,rs${i}1:27018,rs${i}2:27018')"
+done
+
+echo "<=== running PBM agents ===>"
+
+agents="pbm-cfg0"
+for i in {0..2}; do
+    for j in {0..2}; do
+        agents="$agents pbm-rs$i$j"
+    done
+done
+
+let_up $agents
+
+echo "# apply pbm config"
+pbm --mongodb-uri "$DATABASE_URI" config --file "$(dirname "$0")/../cfg.yaml"

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+source "$(dirname "$0")/../util"
+
+for i in {0..2}; do
+    for j in {0..2}; do
+        meval "rs${i}${j}" 27018 \
+            'db.getSiblingDB("rsmap").runCommand("dbHash").collections'
+    done
+done
+
+qc=$(cat "$(dirname "$0")/../quickcheck.js")
+for i in {0..2}; do
+    meval "rs${i}0" 27018 "$qc"
+done
+
+echo "# mongo:27017"
+mongosh "mongo:27017" --quiet --eval "$qc"

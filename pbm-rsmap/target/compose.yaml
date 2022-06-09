@@ -1,0 +1,127 @@
+services:
+    mongos:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: mongos
+        hostname: mongos
+        ports: [27017:27017]
+        command: [mongos, --configdb, "cfg/cfg0:27019", --bind_ip_all]
+
+    cfg0:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: cfg0
+        hostname: cfg0
+        command: [--replSet, cfg, --configsvr, --dbpath, /data/db, --bind_ip_all]
+
+    rs00:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs00
+        hostname: rs00
+        command: [--replSet, rs0, --shardsvr, --bind_ip_all]
+
+    rs01:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs01
+        hostname: rs01
+        command: [--replSet, rs0, --shardsvr, --bind_ip_all]
+
+    rs02:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs02
+        hostname: rs02
+        command: [--replSet, rs0, --shardsvr, --bind_ip_all]
+
+    rs10:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs10
+        hostname: rs10
+        command: [--replSet, rs1, --shardsvr, --bind_ip_all]
+
+    rs11:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs11
+        hostname: rs11
+        command: [--replSet, rs1, --shardsvr, --bind_ip_all]
+
+    rs12:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs12
+        hostname: rs12
+        command: [--replSet, rs1, --shardsvr, --bind_ip_all]
+
+    rs20:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs20
+        hostname: rs20
+        command: [--replSet, rs2, --shardsvr, --bind_ip_all]
+
+    rs21:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs21
+        hostname: rs21
+        command: [--replSet, rs2, --shardsvr, --bind_ip_all]
+
+    rs22:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs22
+        hostname: rs22
+        command: [--replSet, rs2, --shardsvr, --bind_ip_all]
+
+    pbm-cfg0:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-cfg0
+        environment: [PBM_MONGODB_URI=cfg0:27019]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs00:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs00
+        environment: [PBM_MONGODB_URI=rs00:27018]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs01:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs01
+        environment: [PBM_MONGODB_URI=rs01:27018]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs02:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs02
+        environment: [PBM_MONGODB_URI=rs02:27018]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs10:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs10
+        environment: [PBM_MONGODB_URI=rs10:27018]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs11:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs11
+        environment: [PBM_MONGODB_URI=rs11:27018]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs12:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs12
+        environment: [PBM_MONGODB_URI=rs12:27018]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs20:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs20
+        environment: [PBM_MONGODB_URI=rs20:27018]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs21:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs21
+        environment: [PBM_MONGODB_URI=rs21:27018]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs22:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs22
+        environment: [PBM_MONGODB_URI=rs22:27018]
+        volumes: [$PWD/pbm:/data/pbm]

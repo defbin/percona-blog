@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+source "$(dirname $0)/../util"
+
+export DATABASE_URI=mongodb://mongo:27017
+
+let_up mongos conf rs00 rs01 rs02 extra
+
+echo "<=== initiating ===>"
+wait_for conf 27019
+echo "# configsvr/conf:27017"
+meval conf 27019 'rs.initiate({
+    _id: "configsvr",
+    configsvr: true,
+    members: [
+        {_id: 0, host: "conf:27019"},
+    ],
+})'
+
+wait_for rs00 27017 && wait_for rs01 27017 && wait_for rs02 27017
+echo "# rs0/rs00:27017,rs01:27017,rs02:27017"
+meval rs00 27017 'rs.initiate({
+    _id: "rs0",
+    members: [
+        {_id: 0, host: "rs00:27017"},
+        {_id: 1, host: "rs01:27017"},
+        {_id: 2, host: "rs02:27017"},
+    ],
+})'
+
+wait_for extra 27018
+echo "# extra-shard/extra:27018"
+meval extra 27018 'rs.initiate({
+    _id: "extra-shard",
+    members: [
+        {_id: 0, host: "extra:27018"},
+    ],
+})'
+
+echo "<=== adding shards ===>"
+wait_for mongos 27017
+echo "# rs0/rs00:27017,rs01:27017,rs02:27017"
+mongosh "$DATABASE_URI" --quiet --eval \
+    'sh.addShard("rs0/rs00:27017,rs01:27017,rs02:27017")'
+echo "# extra-shard/extra:27018"
+mongosh "$DATABASE_URI" --quiet --eval \
+    'sh.addShard("extra-shard/extra:27018")'
+
+echo "# sh.enableSharding('rsmap')"
+mongosh "$DATABASE_URI" --quiet --eval \
+    "sh.enableSharding('rsmap')"
+echo "# sh.shardCollection('rsmap.coll', { i: 'hashed' })"
+mongosh "$DATABASE_URI" --quiet --eval \
+    "sh.shardCollection('rsmap.coll', { i: 'hashed' })"
+
+echo "<=== running PBM agents ===>"
+let_up pbm-conf pbm-rs00 pbm-rs01 pbm-rs02 pbm-extra
+
+echo "# apply pbm config"
+pbm --mongodb-uri "$DATABASE_URI" config --file "$(dirname "$0")/../cfg.yaml"

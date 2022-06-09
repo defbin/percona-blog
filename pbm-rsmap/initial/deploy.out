@@ -1,0 +1,111 @@
+[+] Running 7/7
+ ⠿ Network initial_default  Created                                                                                                                                          0.1s
+ ⠿ Container mongos         Started                                                                                                                                          2.7s
+ ⠿ Container extra          Started                                                                                                                                          2.9s
+ ⠿ Container rs02           Started                                                                                                                                          2.7s
+ ⠿ Container conf           Started                                                                                                                                          2.6s
+ ⠿ Container rs00           Started                                                                                                                                          2.2s
+ ⠿ Container rs01           Started                                                                                                                                          2.3s
+<=== initiating ===>
+# configsvr/conf:27017
+# conf:27019  rs.initiate({
+    _id: "configsvr",
+    configsvr: true,
+    members: [
+        {_id: 0, host: "conf:27019"},
+    ],
+})
+{
+	"ok" : 1,
+	"$gleStats" : {
+		"lastOpTime" : Timestamp(1655280993, 1),
+		"electionId" : ObjectId("000000000000000000000000")
+	},
+	"lastCommittedOpTime" : Timestamp(1655280993, 1)
+}
+# rs0/rs00:27017,rs01:27017,rs02:27017
+# rs00:27017  rs.initiate({
+    _id: "rs0",
+    members: [
+        {_id: 0, host: "rs00:27017"},
+        {_id: 1, host: "rs01:27017"},
+        {_id: 2, host: "rs02:27017"},
+    ],
+})
+{ "ok" : 1 }
+# extra-shard/extra:27018
+# extra:27018  rs.initiate({
+    _id: "extra-shard",
+    members: [
+        {_id: 0, host: "extra:27018"},
+    ],
+})
+{ "ok" : 1 }
+<=== adding shards ===>
+# rs0/rs00:27017,rs01:27017,rs02:27017
+{
+  shardAdded: 'rs0',
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1655281010, i: 4 }),
+    signature: {
+      hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+      keyId: Long("0")
+    }
+  },
+  operationTime: Timestamp({ t: 1655281010, i: 4 })
+}
+# extra-shard/extra:27018
+{
+  shardAdded: 'extra-shard',
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1655281011, i: 5 }),
+    signature: {
+      hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+      keyId: Long("0")
+    }
+  },
+  operationTime: Timestamp({ t: 1655281011, i: 5 })
+}
+# sh.enableSharding('rsmap')
+{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1655281012, i: 4 }),
+    signature: {
+      hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+      keyId: Long("0")
+    }
+  },
+  operationTime: Timestamp({ t: 1655281012, i: 2 })
+}
+# sh.shardCollection('rsmap.coll', { i: 'hashed' })
+{
+  collectionsharded: 'rsmap.coll',
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1655281013, i: 32 }),
+    signature: {
+      hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+      keyId: Long("0")
+    }
+  },
+  operationTime: Timestamp({ t: 1655281013, i: 27 })
+}
+<=== running PBM agents ===>
+[+] Running 5/5
+ ⠿ Container pbm-conf   Started                                                                                                                                              1.3s
+ ⠿ Container pbm-rs00   Started                                                                                                                                              1.4s
+ ⠿ Container pbm-rs01   Started                                                                                                                                              1.3s
+ ⠿ Container pbm-extra  Started                                                                                                                                              0.9s
+ ⠿ Container pbm-rs02   Started                                                                                                                                              1.1s
+# apply pbm config
+pitr:
+  enabled: false
+  oplogSpanMin: 0
+  compression: s2
+storage:
+  type: filesystem
+  filesystem:
+    path: /data/pbm

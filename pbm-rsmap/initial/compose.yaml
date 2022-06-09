@@ -1,0 +1,68 @@
+services:
+    mongos:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: mongos
+        hostname: mongo
+        ports: [27017:27017]
+        command: [mongos, --configdb, "configsvr/conf:27019", --bind_ip_all]
+
+    conf:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: conf
+        hostname: conf
+        command: [--replSet, configsvr, --configsvr, --dbpath, "/data/db", --bind_ip_all]
+
+    rs00:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs00
+        hostname: rs00
+        command: [--replSet, rs0, --shardsvr, --port, "27017", --bind_ip_all]
+
+    rs01:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs01
+        hostname: rs01
+        command: [--replSet, rs0, --shardsvr, --port, "27017", --bind_ip_all]
+
+    rs02:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: rs02
+        hostname: rs02
+        command: [--replSet, rs0, --shardsvr, --port, "27017", --bind_ip_all]
+
+    extra:
+        image: ${MONGO_IMAGE:-percona/percona-server-mongodb:5.0}
+        container_name: extra
+        hostname: extra
+        command: [--replSet, extra-shard, --shardsvr, --bind_ip_all]
+
+
+    pbm-conf:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-conf
+        environment: [PBM_MONGODB_URI=conf:27019]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs00:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs00
+        environment: [PBM_MONGODB_URI=rs00:27017]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs01:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs01
+        environment: [PBM_MONGODB_URI=rs01:27017]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-rs02:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-rs02
+        environment: [PBM_MONGODB_URI=rs02:27017]
+        volumes: [$PWD/pbm:/data/pbm]
+
+    pbm-extra:
+        image: percona/percona-backup-mongodb:1.8.0
+        container_name: pbm-extra
+        environment: [PBM_MONGODB_URI=extra:27018]
+        volumes: [$PWD/pbm:/data/pbm]

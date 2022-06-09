@@ -1,0 +1,38 @@
+# rs00:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ "coll" : "550f86eb459b4d43de7999fe465e39e0" }
+# rs01:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ "coll" : "550f86eb459b4d43de7999fe465e39e0" }
+# rs02:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ "coll" : "550f86eb459b4d43de7999fe465e39e0" }
+# rs10:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ "coll" : "4a79c07e0cbf3c9076d6e2d81eb77f0a" }
+# rs11:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ "coll" : "4a79c07e0cbf3c9076d6e2d81eb77f0a" }
+# rs12:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ "coll" : "4a79c07e0cbf3c9076d6e2d81eb77f0a" }
+# rs20:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ }
+# rs21:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ }
+# rs22:27018  db.getSiblingDB("rsmap").runCommand("dbHash").collections
+{ }
+# rs00:27018  db.getSiblingDB("rsmap").coll
+    .find().sort({ i: 1 }).toArray()
+    .reduce(([count = 0, seq = true, next = 1], { i }) =>
+             [count + 1, seq && next == i, i + 1], [])
+    .slice(0, 2)
+[ 520, false ]
+# rs10:27018  db.getSiblingDB("rsmap").coll
+    .find().sort({ i: 1 }).toArray()
+    .reduce(([count = 0, seq = true, next = 1], { i }) =>
+             [count + 1, seq && next == i, i + 1], [])
+    .slice(0, 2)
+[ 480, false ]
+# rs20:27018  db.getSiblingDB("rsmap").coll
+    .find().sort({ i: 1 }).toArray()
+    .reduce(([count = 0, seq = true, next = 1], { i }) =>
+             [count + 1, seq && next == i, i + 1], [])
+    .slice(0, 2)
+[ ]
+# mongo:27017
+[ 1000, true ]
