@@ -1,0 +1,270 @@
+services:
+  mongos:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: mongos
+    hostname: mongos
+    ports: [27017:27017]
+    volumes: [$PWD/scripts:/cfg:ro]
+    command:
+      - mongos
+      - --keyFile=/cfg/keyFile
+      - --configdb=cfg/cfg0:27019,cfg1:27019,cfg2:27019
+      - --bind_ip_all
+
+  cfg0:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: cfg0
+    hostname: cfg0
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - cfg0:/data/db
+    command:
+      - mongod
+      - --keyFile=/cfg/keyFile
+      - --configsvr
+      - --dbpath=/data/db
+      - --replSet=cfg
+      - --port=27019
+      - --bind_ip_all
+
+  cfg1:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: cfg1
+    hostname: cfg1
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - cfg1:/data/db
+    command:
+      - mongod
+      - --keyFile=/cfg/keyFile
+      - --configsvr
+      - --dbpath=/data/db
+      - --replSet=cfg
+      - --bind_ip_all
+
+  cfg2:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: cfg2
+    hostname: cfg2
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - cfg2:/data/db
+    command:
+      - mongod
+      - --configsvr
+      - --dbpath=/data/db
+      - --keyFile=/cfg/keyFile
+      - --replSet=cfg
+      - --bind_ip_all
+
+  rs00:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: rs00
+    hostname: rs00
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - rs00:/data/db
+    command:
+      - mongod
+      - --shardsvr
+      - --keyFile=/cfg/keyFile
+      - --replSet=rs0
+      - --bind_ip_all
+
+  rs01:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: rs01
+    hostname: rs01
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - rs01:/data/db
+    command:
+      - mongod
+      - --shardsvr
+      - --keyFile=/cfg/keyFile
+      - --replSet=rs0
+      - --bind_ip_all
+
+  rs02:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: rs02
+    hostname: rs02
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - rs02:/data/db
+    command:
+      - mongod
+      - --shardsvr
+      - --keyFile=/cfg/keyFile
+      - --replSet=rs0
+      - --bind_ip_all
+
+  rs10:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: rs10
+    hostname: rs10
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - rs10:/data/db
+    command:
+      - mongod
+      - --shardsvr
+      - --keyFile=/cfg/keyFile
+      - --replSet=rs1
+      - --bind_ip_all
+
+  rs11:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: rs11
+    hostname: rs11
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - rs11:/data/db
+    command:
+      - mongod
+      - --shardsvr
+      - --keyFile=/cfg/keyFile
+      - --replSet=rs1
+      - --bind_ip_all
+
+  rs12:
+    image: percona/percona-server-mongodb:7.0.15-multi
+    restart: on-failure
+    user: "1001"
+    container_name: rs12
+    hostname: rs12
+    volumes:
+      - $PWD/scripts:/cfg:ro
+      - rs12:/data/db
+    command:
+      - mongod
+      - --shardsvr
+      - --keyFile=/cfg/keyFile
+      - --replSet=rs1
+      - --bind_ip_all
+
+  pbm-cfg0:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-cfg0
+    environment: [PBM_MONGODB_URI=bcp:pass@cfg0:27019]
+    volumes: [cfg0:/data/db]
+    command: [pbm-agent]
+
+  pbm-cfg1:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-cfg1
+    environment: [PBM_MONGODB_URI=bcp:pass@cfg1:27019]
+    volumes: [cfg1:/data/db]
+    command: [pbm-agent]
+
+  pbm-cfg2:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-cfg2
+    environment: [PBM_MONGODB_URI=bcp:pass@cfg2:27019]
+    volumes: [cfg2:/data/db]
+    command: [pbm-agent]
+
+  pbm-rs00:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-rs00
+    environment: [PBM_MONGODB_URI=bcp:pass@rs00:27018]
+    volumes: [rs00:/data/db]
+    command: [pbm-agent]
+
+  pbm-rs01:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-rs01
+    environment: [PBM_MONGODB_URI=bcp:pass@rs01:27018]
+    volumes: [rs01:/data/db]
+    command: [pbm-agent]
+
+  pbm-rs02:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-rs02
+    environment: [PBM_MONGODB_URI=bcp:pass@rs02:27018]
+    volumes: [rs02:/data/db]
+    command: [pbm-agent]
+
+  pbm-rs10:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-rs10
+    environment: [PBM_MONGODB_URI=bcp:pass@rs10:27018]
+    volumes: [rs10:/data/db]
+    command: [pbm-agent]
+
+  pbm-rs11:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-rs11
+    environment: [PBM_MONGODB_URI=bcp:pass@rs11:27018]
+    volumes: [rs11:/data/db]
+    command: [pbm-agent]
+
+  pbm-rs12:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    user: "1001"
+    container_name: pbm-rs12
+    environment: [PBM_MONGODB_URI=bcp:pass@rs12:27018]
+    volumes: [rs12:/data/db]
+    command: [pbm-agent]
+
+  minio:
+    image: minio/minio
+    restart: on-failure
+    ports: [9000:9000]
+    environment:
+      - MINIO_ROOT_USER=miniouser
+      - MINIO_ROOT_PASSWORD=miniopass
+    volumes: [minio:/data]
+    command: server /data
+
+  pbm-cli:
+    image: percona-backup-mongodb:2.7.0-7.0.15
+    restart: on-failure
+    environment: [PBM_MONGODB_URI=bcp:pass@cfg0:27019]
+
+volumes:
+  minio:
+  cfg0:
+  cfg1:
+  cfg2:
+  rs00:
+  rs01:
+  rs02:
+  rs10:
+  rs11:
+  rs12:

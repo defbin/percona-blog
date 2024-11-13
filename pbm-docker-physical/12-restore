@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+docker compose stop -t 1 mongos
+docker compose run --rm pbm-cfg0 pbm restore "$BACKUP_NAME"

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+docker compose up -d \
+    cfg0 cfg1 cfg2 \
+    rs00 rs01 rs02 \
+    rs10 rs11 rs12
+
+sleep 5
+
+docker compose up -d \
+    pbm-cfg0 pbm-cfg1 pbm-cfg2 \
+    pbm-rs00 pbm-rs01 pbm-rs02 \
+    pbm-rs10 pbm-rs11 pbm-rs12
+
+docker compose up -d mongos

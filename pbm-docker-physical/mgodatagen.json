@@ -1,0 +1,68 @@
+[
+  {
+    "database": "db0",
+    "collection": "c0",
+    "count": 200,
+    "content": {
+      "i": {
+        "type": "int",
+        "min": 0,
+        "max": 10
+      }
+    },
+    "shardConfig": {
+      "shardCollection": "db0.c0",
+      "key": {
+        "i": "hashed"
+      },
+      "collation": {
+        "locale": "simple"
+      }
+    }
+  },
+  {
+    "database": "db0",
+    "collection": "c1",
+    "count": 200,
+    "content": {
+      "i": {
+        "type": "int",
+        "min": 0,
+        "max": 10
+      }
+    }
+  },
+  {
+    "database": "db1",
+    "collection": "c0",
+    "count": 100,
+    "content": {
+      "i": {
+        "type": "int",
+        "min": 0,
+        "max": 10
+      }
+    },
+    "shardConfig": {
+      "shardCollection": "db1.c0",
+      "key": {
+        "i": "hashed"
+      },
+      "collation": {
+        "locale": "simple"
+      }
+    }
+  },
+  {
+    "database": "db1",
+    "collection": "c1",
+    "count": 200,
+    "content": {
+      "i": {
+        "type": "int",
+        "min": 0,
+        "max": 10
+      }
+    }
+  }
+]

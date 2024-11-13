@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+docker build -t percona-backup-mongodb:2.7.0-7.0.15 .
+
+docker compose up -d \
+    pbm-cfg0 pbm-cfg1 pbm-cfg2 \
+    pbm-rs00 pbm-rs01 pbm-rs02 \
+    pbm-rs10 pbm-rs11 pbm-rs12
+
+sleep 5 # wait for all agents to start listening command
+
+docker compose run --rm -T pbm-cfg0 pbm config --file="-" <"$PWD/cfg.yaml"
+sleep 5
+docker compose run --rm -T pbm-cfg0 pbm status

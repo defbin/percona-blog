@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+docker compose up -d minio
+sleep 1
+
+# https://min.io/docs/minio/linux/reference/minio-mc.html#install-mc
+mc alias set local http://localhost:9000 miniouser miniopass
+mc mb local/percona
+mc alias remove local

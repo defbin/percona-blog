@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+dcf() {
+    echo >&2 docker compose "$@"
+    # shellcheck disable=SC2068
+    docker compose $@
+}
+
+msh() {
+    if [[ $1 =~ "@" ]]; then
+        local svc="${1#*@}"
+        local conn="mongodb://$1"
+    else
+        local svc=$1
+        local conn="--port=${1##*:}"
+    fi
+
+    if [[ $2 == "--eval" ]]; then
+        dcf exec "${svc%:*}" mongosh --quiet "$conn" --eval "${*:3}"
+    else
+        dcf exec "${svc%:*}" mongosh --quiet "$conn" "${@:2}"
+    fi
+}
+
+mwait() {
+    echo >&2 "waiting for $1"
+    while ! msh "$1" --eval "db.version()" >/dev/null 2>&1; do sleep 1; done
+    msh "$1" --eval "disableTelemetry()" >/dev/null
+}
+
+mwait_prim() {
+    local host
+
+    for _ in {1..10}; do
+        host=$(msh "$1" --eval "db.hello().primary")
+        if [[ $host != "" ]]; then
+            echo "$host"
+            return 0
+        fi
+        sleep 1
+    done
+
+    return 1
+}
+
+add_users() {
+    local host
+
+    host=$(mwait_prim "$1")
+    if [ $? != 0 ]; then
+        echo >&2 "uninitialized primary ($1)"
+        exit 1
+    fi
+
+    msh "$host" "/cfg/users.adm.js"
+    msh "adm:pass@$host" "/cfg/users.bcp.js"
+}
+
+# https://www.mongodb.com/docs/v7.0/tutorial/deploy-sharded-cluster-with-keyfile-access-control/
+if [ ! -s "$PWD/scripts/keyFile" ]; then
+    echo >&2 generate "$PWD/scripts/keyFile"
+    mkdir -p "$PWD/scripts"
+    openssl rand -base64 756 >"$PWD/scripts/keyFile"
+    chmod 400 "$PWD/scripts/keyFile"
+fi
+
+dcf up -d cfg0 cfg1 cfg2 rs00 rs01 rs02 rs10 rs11 rs12
+
+mwait cfg0:27019
+mwait cfg1:27019
+mwait cfg2:27019
+msh cfg0:27019 "/cfg/cfg.js"
+add_users "cfg0:27019"
+
+mwait rs00:27018
+mwait rs01:27018
+mwait rs02:27018
+msh rs00:27018 "/cfg/rs0.js"
+add_users "rs00:27018"
+
+mwait rs10:27018
+mwait rs11:27018
+mwait rs12:27018
+msh rs10:27018 "/cfg/rs1.js"
+add_users "rs10:27018"
+
+dcf up -d mongos
+mwait "mongos:27017"
+msh "adm:pass@mongos:27017" --eval 'sh.addShard("rs0/rs00:27018,rs01:27018,rs02:27018")'
+msh "adm:pass@mongos:27017" --eval 'sh.addShard("rs1/rs10:27018,rs11:27018,rs12:27018")'

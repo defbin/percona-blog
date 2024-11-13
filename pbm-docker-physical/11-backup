@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+docker compose run --rm pbm-cfg0 pbm backup --type physical --wait
